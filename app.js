@@ -2,22 +2,26 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 
 const dir = process.argv[2];
-const resultFile = (process.argv[3] ?? 'result') + '.csv';
+const resultFile = 'results/' + (process.argv[3] ?? 'result');
+const resultFileExt = '.csv';
 
-let index = 0;
+fs.rmdirSync('results', {recursive: true});
+fs.mkdirSync('results');
 try {
     fs.readdir(dir, (err, files) => {
         files.forEach(file => {
             if(!file.endsWith('.yaml')) return;
             console.log(`Processing: ${file}`);
             const doc = yaml.safeLoad(fs.readFileSync(`${dir}/${file}`, 'utf8'));
-            if(index == 0) {
+
+            const values = getAllProps(doc);
+            const resultFileName = makeResultFileName(values);
+            if(!fs.existsSync(resultFileName)){
                 const keys = arrToCSVLine(getAllProps(doc, true));
-                fs.writeFileSync(resultFile, keys);
+                fs.writeFileSync(resultFileName, keys);
             }
-            const values = arrToCSVLine(getAllProps(doc));
-            fs.appendFileSync(resultFile, values);
-            index ++;
+
+            fs.appendFileSync(resultFileName, arrToCSVLine(values));
         })
     });
 } catch (e) {
@@ -37,3 +41,5 @@ const getAllProps = (json, getKey = false) => {
 }
 
 const arrToCSVLine = (arr) => arr.join(',') + "\n";
+
+const makeResultFileName = (valueArr) => `${resultFile}_${valueArr.length}${resultFileExt}`;
