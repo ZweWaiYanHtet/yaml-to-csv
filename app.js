@@ -8,6 +8,7 @@ let index = 0;
 try {
     fs.readdir(dir, (err, files) => {
         files.forEach(file => {
+            if(!file.endsWith('.yaml')) return;
             console.log(`Processing: ${file}`);
             const doc = yaml.safeLoad(fs.readFileSync(`${dir}/${file}`, 'utf8'));
             if(index == 0) {
